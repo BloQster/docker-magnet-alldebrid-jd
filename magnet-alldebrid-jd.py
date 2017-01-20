@@ -93,7 +93,7 @@ def remove_torrent_from_alldebrid(torrent_id):
 
 
 def add_links_to_jd(package_name, links):
-    return get_myjd_device().my_jdownloader_device.linkgrabber.add_links([{"autostart": True, "links": ','.join(links), "packageName": package_name}])
+    return get_myjd_device().linkgrabber.add_links([{"autostart": True, "links": ','.join(links), "packageName": package_name}])
         
         
 if __name__ == '__main__':
