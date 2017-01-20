@@ -31,8 +31,6 @@ my_jdownloader_device = my_jdownloader_controller.get_device(os.environ.get('MYJ
 cookie_data = {'lang': 'en', 'domain': 'com', 'uid': os.environ.get('ALLDEBRID_UID'), 'ssl': '1'}
 
 def main():
-    remove_torrent_from_alldebrid('1212')
-
     folder_thread = threading.Thread(target=watch_folder_for_magnet_files)
     alldebrid_thread = threading.Thread(target=watch_alldebrid_torrents)
 
