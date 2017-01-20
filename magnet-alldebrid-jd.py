@@ -23,11 +23,6 @@ torrent_status_params = {'json': 'true', 'randval': '0.5892932157480815', '_': '
 torrent_remove_url = 'https://alldebrid.com/torrent/'
 torrent_remove_params = {'action': 'remove'}
 
-# MyJdownloader API variables
-my_jdownloader_controller = myjdapi.Myjdapi()
-my_jdownloader_controller.connect(os.environ.get('MYJDOWNLOADER_EMAIL'), os.environ.get('MYJDOWNLOADER_PASSWORD'))
-my_jdownloader_device = my_jdownloader_controller.get_device(os.environ.get('MYJDOWNLOADER_DEVICENAME'))
-
 cookie_data = {'lang': 'en', 'domain': 'com', 'uid': os.environ.get('ALLDEBRID_UID'), 'ssl': '1'}
 
 def main():
@@ -84,6 +79,11 @@ def watch_alldebrid_torrents():
         time.sleep(1)
 
 
+def get_myjd_device():    
+    my_jdownloader_controller = myjdapi.Myjdapi()
+    my_jdownloader_controller.connect(os.environ.get('MYJDOWNLOADER_EMAIL'), os.environ.get('MYJDOWNLOADER_PASSWORD'))
+    return my_jdownloader_controller.get_device(os.environ.get('MYJDOWNLOADER_DEVICENAME'))
+
 def add_magnet_to_alldebrid(magnet_link):
     return json.loads(requests.post(torrent_upload_url, cookies=cookie_data, data={**{'magnet': magnet_link}, **torrent_upload_params}).text)
 
@@ -93,7 +93,8 @@ def remove_torrent_from_alldebrid(torrent_id):
 
 
 def add_links_to_jd(package_name, links):
-    return my_jdownloader_device.linkgrabber.add_links([{"autostart": True, "links": ','.join(links), "packageName": package_name}])
-
+    return get_myjd_device().my_jdownloader_device.linkgrabber.add_links([{"autostart": True, "links": ','.join(links), "packageName": package_name}])
+        
+        
 if __name__ == '__main__':
     sys.exit(main())
