@@ -59,7 +59,7 @@ def watch_folder_for_magnet_files():
 
 def watch_alldebrid_torrents():
     while True:
-        torrent_list = json.loads(requests.get(torrent_status_url, cookies=cookie_data, params=torrent_status_params).text)
+        torrent_list = json.loads(requests.get(torrent_status_url, cookies=cookie_data, params=torrent_status_params).text or "[]")
         for torrent in torrent_list:
             if torrent[4] == 'finished':
                 torrent_name = re.sub(r"^<span.*?>(.*?)<\/span>$", r"\1", torrent[3])
