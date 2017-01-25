@@ -59,25 +59,28 @@ def watch_folder_for_magnet_files():
 
 def watch_alldebrid_torrents():
     while True:
-        torrent_list = json.loads(requests.get(torrent_status_url, cookies=cookie_data, params=torrent_status_params).text or "[]")
-        for torrent in torrent_list:
-            if torrent[4] == 'finished':
-                torrent_name = re.sub(r"^<span.*?>(.*?)<\/span>$", r"\1", torrent[3])
-                links = [x.replace('http:', 'https:') for x in re.sub(r"^<a value=.*?(http.*),;,.*$", r"\1", torrent[10]).split(',;,')]
+        try:
+            torrent_list = json.loads(requests.get(torrent_status_url, cookies=cookie_data, params=torrent_status_params).text or "[]")
+            for torrent in torrent_list:
+                if torrent[4] == 'finished':
+                    torrent_name = re.sub(r"^<span.*?>(.*?)<\/span>$", r"\1", torrent[3])
+                    links = [x.replace('http:', 'https:') for x in re.sub(r"^<a value=.*?(http.*),;,.*$", r"\1", torrent[10]).split(',;,')]
 
-                add_result = add_links_to_jd(torrent_name, links)
-                if add_result['id'] is not None:
-                    print("{0} has been successfully added to myJD (id: {1}, {2} links)".format(torrent_name, add_result['id'], len(links)))
-                else:
-                    print("{0} could not be added to myJD".format(torrent_name))
+                    add_result = add_links_to_jd(torrent_name, links)
+                    if add_result['id'] is not None:
+                        print("{0} has been successfully added to myJD (id: {1}, {2} links)".format(torrent_name, add_result['id'], len(links)))
+                    else:
+                        print("{0} could not be added to myJD".format(torrent_name))
 
-                remove_result = remove_torrent_from_alldebrid(torrent[1])
-                if remove_result.status_code == 302:
-                    print("{0} has been successfully removed from Alldebrid".format(torrent_name))
-                elif remove_result.status_code == 200:
-                    print("{0} could not be found on the Alldebrid list".format(torrent_name))
-        time.sleep(1)
-
+                    remove_result = remove_torrent_from_alldebrid(torrent[1])
+                    if remove_result.status_code == 302:
+                        print("{0} has been successfully removed from Alldebrid".format(torrent_name))
+                    elif remove_result.status_code == 200:
+                        print("{0} could not be found on the Alldebrid list".format(torrent_name))
+            time.sleep(5)
+        except:
+            pass
+            
 
 def get_myjd_device():    
     my_jdownloader_controller = myjdapi.Myjdapi()
