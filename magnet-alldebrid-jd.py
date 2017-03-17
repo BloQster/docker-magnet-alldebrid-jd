@@ -94,7 +94,7 @@ def add_magnet_to_alldebrid(magnet_link):
 
 
 def remove_torrent_from_alldebrid(torrent_id):
-    return requests.get(torrent_remove_url, cookies=cookie_data, params={**{'id': torrent_id}, **torrent_remove_params}, allow_redirects=False or "[]")
+    return requests.get(torrent_remove_url, cookies=cookie_data, params={**{'id': torrent_id}, **torrent_remove_params}, allow_redirects=False)
 
 
 def add_links_to_jd(package_name, links):
