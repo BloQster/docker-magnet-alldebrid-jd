@@ -47,7 +47,7 @@ def watch_folder_for_magnet_files():
                 file_contents = read_file.read()
             add_result = add_magnet_to_alldebrid(file_contents)
             if add_result.get('success') == 1:
-                os.rename(os.path.join(os.environ.get('MAGNETFILE_DIR'), file), os.path.join(os.environ.get('MAGNETFILE_DIR'), add_result.get('id') + '.dl'))
+                os.rename(os.path.join(os.environ.get('MAGNETFILE_DIR'), file), os.path.join(os.environ.get('MAGNETFILE_DIR'), str(add_result.get('id')) + '.dl'))
                 print("Successfully added {0} to Alldebrid".format(file))
             elif add_result.get('error') == 4:
                 os.rename(os.path.join(os.environ.get('MAGNETFILE_DIR'), file), os.path.join(os.environ.get('MAGNETFILE_DIR'), os.path.splitext(file)[0] + '.dup'))
