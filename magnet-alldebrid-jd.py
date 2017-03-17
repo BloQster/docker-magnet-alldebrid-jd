@@ -39,7 +39,8 @@ def main():
 
 def watch_folder_for_magnet_files():
     while True:
-        file_list = [x for x in os.listdir(os.environ.get('MAGNETFILE_DIR')) if os.path.isfile(os.path.join(os.environ.get('MAGNETFILE_DIR'), x)) and os.path.splitext(x)[1] == '.magnet']
+        file_list = [files for files in os.listdir(os.environ.get('MAGNETFILE_DIR'))
+                     if os.path.isfile(os.path.join(os.environ.get('MAGNETFILE_DIR'), files)) and os.path.splitext(files)[1] == '.magnet']
         for file in file_list:
             print("Found magnet file named {0}".format(file))
             with open(os.path.join(os.environ.get('MAGNETFILE_DIR'), file), 'r') as read_file:
@@ -47,6 +48,7 @@ def watch_folder_for_magnet_files():
             add_result = add_magnet_to_alldebrid(file_contents)
             if add_result.get('success') == 1:
                 os.remove(os.path.join(os.environ.get('MAGNETFILE_DIR'), file))
+                os.open(os.path.join(os.environ.get('MAGNETFILE_DIR'), add_result.get('id') + '.dl'), 'a')
                 print("Successfully added {0} to Alldebrid".format(file))
             elif add_result.get('error') == 4:
                 os.remove(os.path.join(os.environ.get('MAGNETFILE_DIR'), file))
@@ -62,7 +64,10 @@ def watch_alldebrid_torrents():
         try:
             torrent_list = json.loads(requests.get(torrent_status_url, cookies=cookie_data, params=torrent_status_params).text or "[]")
             for torrent in torrent_list:
-                if torrent[4] == 'finished':
+                torrent_id = torrent[1]
+                torrent_status = torrent[4]
+                if torrent_status == 'finished' and torrent_id in [os.path.splitext(files)[0] for files in os.listdir(os.environ.get('MAGNETFILE_DIR'))
+                                                               if os.path.isfile(os.path.join(os.environ.get('MAGNETFILE_DIR'), files)) and os.path.splitext(files)[1] == '.dl']:
                     torrent_name = re.sub(r"^<span.*?>(.*?)<\/span>$", r"\1", torrent[3])
                     links = [x.replace('http:', 'https:') for x in re.sub(r"^<a value=.*?(http.*),;,.*$", r"\1", torrent[10]).split(',;,')]
 
@@ -72,7 +77,8 @@ def watch_alldebrid_torrents():
                     else:
                         print("{0} could not be added to myJD".format(torrent_name))
 
-                    remove_result = remove_torrent_from_alldebrid(torrent[1])
+                    remove_result = remove_torrent_from_alldebrid(torrent_id)
+                    os.remove(os.path.join(os.environ.get('MAGNETFILE_DIR'), torrent_id + '.dl'))
                     if remove_result.status_code == 302:
                         print("{0} has been successfully removed from Alldebrid".format(torrent_name))
                     elif remove_result.status_code == 200:
