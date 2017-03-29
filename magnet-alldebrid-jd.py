@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Script to watch a folder for new magnet links being put in, uploading them to alldebrid and adding the respective links to a MyJdownloader instance when finished"""
 import sys
 import os
@@ -60,6 +62,12 @@ def watch_folder_for_magnet_files():
 
 def watch_alldebrid_torrents():
     while True:
+        try:
+            get_myjd_device()
+        except myjdapi.Myjdapi.MYJDException:
+            time.sleep(30)
+            continue
+            
         torrent_list = json.loads(requests.get(torrent_status_url, cookies=cookie_data, params=torrent_status_params).text or "[]")
         for torrent in torrent_list:
             torrent_id = torrent[1]
@@ -69,7 +77,11 @@ def watch_alldebrid_torrents():
                 torrent_name = re.sub(r"^<span.*?>(.*?)<\/span>$", r"\1", torrent[3])
                 links = [x.replace('http:', 'https:') for x in re.sub(r"^<a value=.*?(http.*),;,.*$", r"\1", torrent[10]).split(',;,')]
 
-                add_result = add_links_to_jd(torrent_name, links)
+                try:
+                    add_result = add_links_to_jd(torrent_name, links)
+                except myjdapi.Myjdapi.MYJDException:
+                    continue
+                
                 if add_result['id'] is not None:
                     print("{0} has been successfully added to myJD (id: {1}, {2} links)".format(torrent_name, add_result['id'], len(links)))
                 else:
@@ -88,6 +100,7 @@ def get_myjd_device():
     my_jdownloader_controller = myjdapi.Myjdapi()
     my_jdownloader_controller.connect(os.environ.get('MYJDOWNLOADER_EMAIL'), os.environ.get('MYJDOWNLOADER_PASSWORD'))
     return my_jdownloader_controller.get_device(os.environ.get('MYJDOWNLOADER_DEVICENAME'))
+
 
 def add_magnet_to_alldebrid(magnet_link):
     return json.loads(requests.post(torrent_upload_url, cookies=cookie_data, data={**{'magnet': magnet_link}, **torrent_upload_params}).text or "[]")
