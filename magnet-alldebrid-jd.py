@@ -63,36 +63,29 @@ def watch_folder_for_magnet_files():
 def watch_alldebrid_torrents():
     while True:
         try:
-            get_myjd_device()
-        except myjdapi.Myjdapi.MYJDException:
-            time.sleep(30)
-            continue
-            
-        torrent_list = json.loads(requests.get(torrent_status_url, cookies=cookie_data, params=torrent_status_params).text or "[]")
-        for torrent in torrent_list:
-            torrent_id = torrent[1]
-            torrent_status = torrent[4]
-            if torrent_status == 'finished' and torrent_id in [os.path.splitext(files)[0] for files in os.listdir(os.environ.get('MAGNETFILE_DIR'))
-                                                               if os.path.isfile(os.path.join(os.environ.get('MAGNETFILE_DIR'), files)) and os.path.splitext(files)[1] == '.dl']:
-                torrent_name = re.sub(r"^<span.*?>(.*?)<\/span>$", r"\1", torrent[3])
-                links = [x.replace('http:', 'https:') for x in re.sub(r"^<a value=.*?(http.*),;,.*$", r"\1", torrent[10]).split(',;,')]
+            torrent_list = json.loads(requests.get(torrent_status_url, cookies=cookie_data, params=torrent_status_params).text or "[]")
+            for torrent in torrent_list:
+                torrent_id = torrent[1]
+                torrent_status = torrent[4]
+                if torrent_status == 'finished' and torrent_id in [os.path.splitext(files)[0] for files in os.listdir(os.environ.get('MAGNETFILE_DIR'))
+                                                                   if os.path.isfile(os.path.join(os.environ.get('MAGNETFILE_DIR'), files)) and os.path.splitext(files)[1] == '.dl']:
+                    torrent_name = re.sub(r"^<span.*?>(.*?)<\/span>$", r"\1", torrent[3])
+                    links = [x.replace('http:', 'https:') for x in re.sub(r"^<a value=.*?(http.*),;,.*$", r"\1", torrent[10]).split(',;,')]
 
-                try:
                     add_result = add_links_to_jd(torrent_name, links)
-                except myjdapi.Myjdapi.MYJDException:
-                    continue
-                
-                if add_result['id'] is not None:
-                    print("{0} has been successfully added to myJD (id: {1}, {2} links)".format(torrent_name, add_result['id'], len(links)))
-                else:
-                    print("{0} could not be added to myJD".format(torrent_name))
+                    if add_result['id'] is not None:
+                        print("{0} has been successfully added to myJD (id: {1}, {2} links)".format(torrent_name, add_result['id'], len(links)))
+                    else:
+                        print("{0} could not be added to myJD".format(torrent_name))
 
-                remove_result = remove_torrent_from_alldebrid(torrent_id)
-                os.remove(os.path.join(os.environ.get('MAGNETFILE_DIR'), torrent_id + '.dl'))
-                if remove_result.status_code == 302:
-                    print("{0} has been successfully removed from Alldebrid".format(torrent_name))
-                elif remove_result.status_code == 200:
-                    print("{0} could not be found on the Alldebrid list".format(torrent_name))
+                    remove_result = remove_torrent_from_alldebrid(torrent_id)
+                    os.remove(os.path.join(os.environ.get('MAGNETFILE_DIR'), torrent_id + '.dl'))
+                    if remove_result.status_code == 302:
+                        print("{0} has been successfully removed from Alldebrid".format(torrent_name))
+                    elif remove_result.status_code == 200:
+                        print("{0} could not be found on the Alldebrid list".format(torrent_name))
+        except:
+            time.sleep(25)
         time.sleep(5)
             
 
